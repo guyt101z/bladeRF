@@ -1,0 +1,10 @@
+Copy the files from CyUSBSuite_Source.zip\CyUSBSuite_Source\CyAPI_lib_cpp here. 
+
+So this folder should have the following files
+
+inc
+res
+src
+Read.Me
+CyAPI.vcproj
+

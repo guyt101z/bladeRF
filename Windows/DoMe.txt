@@ -1,0 +1,6 @@
+Copy the following files from the FX3 SDK here [PathToSDK]\1.2\bin\win7\X64
+
+cyusb3.cat
+cyusb3.sys
+WdfCoInstaller01009.dll
+

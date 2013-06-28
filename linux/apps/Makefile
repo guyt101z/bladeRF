@@ -12,7 +12,7 @@
 SRC_DIR := src
 BIN_DIR := bin
 
-APPS := cli
+APPS := cli test
 
 CFLAGS_LIBBLADERF ?= $(shell pkg-config --cflags libbladeRF)
 CFLAGS := -Wall -Wextra -Wno-unused-parameter -std=gnu99 -D_GNU_SOURCE \
@@ -41,4 +41,5 @@ $(BIN_DIR)/% : $(BIN_DIR)
 clean:
 	rm -rf $(BIN_DIR)
 	$(MAKE) -C $(SRC_DIR)/cli clean
+	$(MAKE) -C $(SRC_DIR)/test clean
 

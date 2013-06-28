@@ -14,9 +14,11 @@ SRC_DIR := src
 INC_DIR := include
 LIB_DIR := lib
 BIN_DIR := bin
+CYUSBDIR := src/cyusbsuite
 
-SRC := $(wildcard $(SRC_DIR)/*.c)
-OBJ := $(SRC:.c=.o)
+SRC := $(SRC_DIR)/bladerf.c $(SRC_DIR)/bladerf_windows.cpp $(SRC_DIR)/lms.c $(SRC_DIR)/si5338.c $(CYUSBDIR)/src/CyAPI.cpp
+OBJ_step1 := $(SRC:.cpp=.o)
+OBJ := $(OBJ_step1:.c=.o)
 
 # Craft the various file names associated with the library
 LIB_SO_NAME := $(LIB_NAME).so.$(LIB_VER_MAJ)
@@ -37,9 +39,15 @@ DRIVER_HEADER_DIR ?= ../../common
 CFLAGS := -Wall -Wextra -Wno-unused-parameter \
 		  -fPIC \
 		  -std=gnu99 -D_GNU_SOURCE $(LIB_VER_FLAG) \
-		  -I$(INC_DIR) -I$(DRIVER_HEADER_DIR)
+		  -I$(INC_DIR) -I$(DRIVER_HEADER_DIR) 
 
-LDFLAGS := -fPIC
+CPPFLAGS := -Wall -Wextra -Wno-unused-parameter \
+		  -fPIC \
+		  -std=gnu99 -D_GNU_SOURCE $(LIB_VER_FLAG) \
+		  -I$(INC_DIR) -I$(DRIVER_HEADER_DIR) -I$(CYUSBDIR)/inc -I/mingw/mingw64/x86_64-w64-mingw32/include/
+
+
+LDFLAGS := -fPIC -lsetupapi -mwindows
 
 ifdef DEBUG
 	CFLAGS += -O0 -ggdb3 -DDEBUG
@@ -68,7 +76,7 @@ $(STATIC_LIB): $(OBJ)
 shared: $(LIB_DIR) $(SHARED_LIB)
 
 $(SHARED_LIB): $(OBJ)
-	$(CC) -shared -Wl,-soname,$(LIB_SO_NAME) $(OBJ) $(LDFLAGS) -o $@
+	g++ -shared -Wl,-soname,$(LIB_SO_NAME) $(OBJ) $(LDFLAGS) -o $@
 	@cd $(LIB_DIR); \
 		ln -fs $(LIB_NAME_FULL) $(LIB_SO_NAME).$(LIB_VER_MIN); \
 		ln -fs $(LIB_SO_NAME).$(LIB_VER_MIN) $(LIB_SO_NAME); \

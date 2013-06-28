@@ -11,7 +11,7 @@ ifneq ($(INTERACTIVE),n)
 	SRC += $(wildcard interactive/*.c)
 endif
 
-TARGET = $(BIN_DIR)/bladeRF
+TARGET = $(BIN_DIR)/test
 
 all: $(TARGET)
 
