@@ -1,4 +1,5 @@
 #include <libbladeRF.h>
+#include <sys/time.h>
 
 int main(int argc, char *argv[]) {
     int numsam, numread;
@@ -12,25 +13,29 @@ int main(int argc, char *argv[]) {
         return 0;
     }
     printf("Is bladerf_is_fpga_configured = %d\n",bladerf_is_fpga_configured(dev));
-
-    bladerf_load_fpga(dev, "bladerf.rbf");
-
-    gpio_write( dev, 0x4f);
-    si5338_set_rx_freq(dev, 40E6);
-    lms_set_frequency( dev, RX, 314500000 ) ;
-    lms_rxvga2_set_gain( dev, 25 ) ;
-    lms_spi_write( dev, 0x59, 0x09 ) ;
-    lms_rx_enable( dev );
+	if (!bladerf_is_fpga_configured(dev))
+	{
+		bladerf_load_fpga(dev,"f:\\downloads\\hosted(1).rbf");
+	}
+	gpio_write( dev, 0x4f);
+    si5338_set_rx_freq(dev, 5E6);
+	lms_set_frequency( dev, RX, 866500000 ) ;
+	lms_rx_enable(dev);
+	lms_tx_disable(dev);
+	bladerf_StartRX(dev);
+	lms_spi_write(dev, 0x59, 0x29);
 
 //    si5338_set_tx_freq(dev, 40E6);
 //    lms_set_frequency( dev, TX, 314000000 ) ;
-//    lms_lpf_enable( dev, TX, BW_28MHz ) ;
+    //lms_lpf_enable( dev, TX, BW_28MHz ) ;
 //    lms_pa_enable( dev, PA_1 ) ;
-    lms_tx_disable( dev );
-
-    numsam = atoi(argv[1]);
-    numread = (numsam + 1023) / 1024;
-    numsam = numread * 1024;
+/*    lms_tx_disable( dev );
+	lms_dump_registers(dev);
+	bladerf_StartRX(dev);*/
+#define BlockSize (8192)
+    numsam = 16384; //atoi(argv[1]);
+    numread = (numsam + (BlockSize-1)) / BlockSize;
+    numsam = numread * BlockSize;
 
     buf = malloc(4 * numsam);
 
@@ -38,12 +43,36 @@ int main(int argc, char *argv[]) {
     memset(buf, 0, 2048);
 
     bufidx = 0;
+	//bladerf_StartRX(dev);
+	//bladerf_setInterface(dev,1);
 
+	struct timeval begin, end;
+	int loops = 100;
     printf( "Reading...\n" ) ;
-/*    for (x = 0; x < numread; x++) {
-        nread = read(dev->fd, &buf[bufidx], 1024*4);
-        bufidx += nread;
-    }*/
+	nread=0;
+	double totalTime=0;
+	double totalSamples=0;
+    gettimeofday(&begin, NULL);
+	nread=0;
+	while(true)
+	{
+		nread += bladerf_read_c16(dev,(int16_t*) &buf[0] , BlockSize);
+		gettimeofday(&end, NULL);
+		double timesec =  (double)(end.tv_sec - begin.tv_sec);
+		double timeusec = (double)(end.tv_usec - begin.tv_usec);
+		double time = timesec + (timeusec / 1000000.0 ); 
+		if (time >=1)
+		{
+			double SamplesSec = (1 * nread)/ time;
+			totalTime+=time;
+			totalSamples += nread;
+			double SamplesSecTotal = totalSamples / totalTime;
+			printf("Samples %d time = %f samp/sec = %f global:%f\n",nread,time,SamplesSec,SamplesSecTotal);
+			gettimeofday(&begin, NULL);
+			nread=0;
+		}
+        
+    }
     printf( "Done!\n" ) ;
     rb = (unsigned short *)buf;
     short i, q;
@@ -66,7 +95,9 @@ int main(int argc, char *argv[]) {
             i |= 0xf000;
         if (q & 0x800)
             q |= 0xf000;
-        printf("%d, %d\n", (int)i, (int)q);
+        //printf("%d, %d\n", (int)i, (int)q);
     }
+	bladerf_close(dev);
+	printf("Exit\n");
     return 0 ;
 }

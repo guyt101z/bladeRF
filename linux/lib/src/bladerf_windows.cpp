@@ -23,6 +23,19 @@
 extern "C"
 {
 
+CCyBulkEndPoint *GetEndPoint(struct bladerf *dev,int id)
+{
+	CCyUSBDevice *USBDevice = (CCyUSBDevice *) dev->Device;
+	int eptCount = USBDevice->EndPointCount();
+	for (int i=1; i<eptCount; i++) 
+	{
+		 if (USBDevice->EndPoints[i]->Address == id)
+			 return (CCyBulkEndPoint *)USBDevice->EndPoints[i]; 
+	}
+	return NULL;
+}
+
+
 /*******************************************************************************
  * Device discovery & initialization/deinitialization
  ******************************************************************************/
@@ -78,7 +91,14 @@ ssize_t bladerf_send_c16(struct bladerf *dev, int16_t *samples, size_t n)
 ssize_t bladerf_read_c16(struct bladerf *dev,
                             int16_t *samples, size_t max_samples)
 {
-     return 0;
+     long size = max_samples *4;
+     CCyBulkEndPoint *ep81 =NULL;
+     ep81 = GetEndPoint(dev,0x81);
+     bool res = ep81->XferData((PUCHAR)samples,size);
+     if (res)
+       return size/4;
+     else
+       return 0;
 }
 /* TODO - Devices do not currently support serials */
 int bladerf_get_serial(struct bladerf *dev, uint64_t *serial)
@@ -240,19 +260,6 @@ int bladerf_flash_firmware(struct bladerf *dev, const char *firmware)
     return 0;
 }
 
-
-CCyBulkEndPoint *GetEndPoint(struct bladerf *dev,int id)
-{
-	CCyUSBDevice *USBDevice = (CCyUSBDevice *) dev->Device;
-	int eptCount = USBDevice->EndPointCount();
-	for (int i=1; i<eptCount; i++) 
-	{
-		 if (USBDevice->EndPoints[i]->Address == id)
-			 return (CCyBulkEndPoint *)USBDevice->EndPoints[i]; 
-	}
-	return NULL;
-}
-
 #define STACK_BUFFER_SZ 1024
 int bladerf_load_fpga(struct bladerf *dev, const char *fpga)
 {
@@ -385,7 +392,7 @@ int lms_spi_write(struct bladerf *dev, uint8_t address, uint8_t val)
     buf[1] = UART_PKT_MODE_DIR_WRITE | UART_PKT_DEV_LMS | 0x01;
 	buf[2] = address;
     buf[3] = val;
-	printf("LMS Write %x = %x\n",address,val);
+
 	CCyBulkEndPoint *ep2 = GetEndPoint(dev,0x2);
 	CCyBulkEndPoint *ep82 = GetEndPoint(dev,0x82);
 
@@ -405,7 +412,15 @@ int lms_spi_write(struct bladerf *dev, uint8_t address, uint8_t val)
 	short *TmpBuffer[2];
 	int CurIdx=0;
 CCyBulkEndPoint *ep81 =NULL;
+
 int bladerf_read(struct bladerf *dev, short* Buffer, int size, int *BytesRead)
+{
+  *BytesRead = size;
+  return 0;
+}
+
+
+int bladerf_read2(struct bladerf *dev, short* Buffer, int size, int *BytesRead)
 {
 	if (!ep81)
 	{

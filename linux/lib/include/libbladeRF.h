@@ -657,6 +657,11 @@ int gpio_write(struct bladerf *dev, uint32_t val);
 
 /* @} (End of GPIO_CTL) */
 
+bool bladerf_setInterface(struct bladerf *dev,int interfaceID);
+void samples_read(struct bladerf *dev);
+int bladerf_StartRX(struct bladerf *dev);
+
+
 #ifdef __cplusplus
 }
 #endif
