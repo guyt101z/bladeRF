@@ -419,6 +419,11 @@ void NuandRFLinkStart(void)
     CyU3PReturnStatus_t apiRetStatus = CY_U3P_SUCCESS;
     CyU3PUSBSpeed_t usbSpeed = CyU3PUsbGetSpeed();
 
+    if (glChHandlebladeRFUtoP.state != 0)
+    {
+	NuandFpgaConfigStop();
+    }
+
     NuandGPIOReconfigure(CyTrue, CyTrue);
 
     /* Load the GPIF configuration for loading the RF transceiver */
@@ -586,6 +591,11 @@ void NuandFpgaConfigStart(void)
     CyU3PDmaChannelConfig_t dmaCfg;
     CyU3PReturnStatus_t apiRetStatus = CY_U3P_SUCCESS;
     CyU3PUSBSpeed_t usbSpeed = CyU3PUsbGetSpeed();
+
+    if (glChHandlebladeRFUtoP.state != 0)
+    {
+	NuandFpgaConfigStop();
+    }
 
     NuandGPIOReconfigure(CyTrue, CyFalse);
 
