@@ -419,9 +419,9 @@ void NuandRFLinkStart(void)
     CyU3PReturnStatus_t apiRetStatus = CY_U3P_SUCCESS;
     CyU3PUSBSpeed_t usbSpeed = CyU3PUsbGetSpeed();
 
-    if (glChHandlebladeRFUtoP.state != 0)
+    if (glChHandleMultiUtoP.state != 0)
     {
-	NuandFpgaConfigStop();
+        NuandRFLinkStop();
     }
 
     NuandGPIOReconfigure(CyTrue, CyTrue);
@@ -594,7 +594,7 @@ void NuandFpgaConfigStart(void)
 
     if (glChHandlebladeRFUtoP.state != 0)
     {
-	NuandFpgaConfigStop();
+         NuandFpgaConfigStop();
     }
 
     NuandGPIOReconfigure(CyTrue, CyFalse);
